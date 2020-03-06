@@ -40,16 +40,24 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
                 if (xhr.status==200) {
                     //XXX: parse some JSON from the request!
                     //XXX: Pass the data to the callback!
+                    if(callback){
+                        var json_file = JSON.parse(xhr.responseText);
+                        callback(json_file)
+                    }
                 }
             } 
             catch(e) {
-                alert('Error: ' + e.name);
+                alert('Error22: ' + e.name);
             }
         }
     };
     //XXX: POST to a URL
+    xhr.open("POST", url, true);
     //XXX: set the mimetype and the accept headers!
     // Remember to use application/json !
+    xhr.setRequestHeader('Content-type', 'application/json')
+    xhr.setRequestHeader('Accept','*/*')
+    xhr.send(objects)
 }
 
 
@@ -65,8 +73,11 @@ function drawCircle(context,entity) {
         //moveTo(x,y);
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
+        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false); 
+        if(entity["radius"]!=null && entity["radius"] == 3)
+            fill();
+        else
+            stroke();                                
     }
 }
 
@@ -136,8 +147,12 @@ function getPosition(e) {
 
 function addEntity(entity, data) {
     world[entity] = data;
-    drawNextFrame(); // (but should we?)
-    //XXX: Send a XHTML Request that updates the entity you just  modified!
+    // drawNextFrame(); // (but should we?)
+    //XXX: Send a XHTML Request that updates the entity you just modified!
+    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+    sendJSONXMLHTTPRequest('/entity/'+entity, JSON.stringify(data), null)
+    
+
 
 }
 
@@ -244,25 +259,50 @@ mouse = (function() {
     return self;
 })();
 
+
+
+function random_color() {
+    color_list = ['#19CAAD', '#8CC7B5', '#A0EEE1', '#BEE7E9', '#ECAD9E','F4606C','#3DE1AD','#B0A4E3'];
+    var color = color_list[Math.floor(Math.random() * 8)];
+    return color;
+}
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
 // Add the application specific mouse listeners!
-//XXX: TODO Make these prettier!
+// XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour': '#43A2E4',
+                            'radius': 30});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'#feee50',
+                            'radius':30});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+    addEntityWithoutName({'x':x,'y':y,'colour': getRandomColor(),
+                          'radius':3});
 });
 
-
+var xhttp = new XMLHttpRequest()
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
+    drawNext = true
     drawFrame();
+    var callback = function(data){
+        world = data;
+        drawFrame();
+    }
+    sendJSONXMLHTTPRequest('/world',null,callback)
+    
 }
 
 // 30 frames per second
