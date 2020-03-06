@@ -22,8 +22,9 @@
     "/>
     <script src="json2.js"></script>
   </head> 
-  <body bgcolor="black" height="100%" width="100%"> 
-    <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas> 
+  <body bgcolor="#000" height="100%" width="100%"> 
+    <canvas  id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;
+    " ></canvas> 
     <script>
 var canvas = document.getElementById('c');
 var host = window.location.host;
@@ -51,9 +52,9 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             }
         }
     };
-    //XXX: POST to a URL
+    // XXX: POST to a URL
     xhr.open("POST", url, true);
-    //XXX: set the mimetype and the accept headers!
+    // XXX: set the mimetype and the accept headers!
     // Remember to use application/json !
     xhr.setRequestHeader('Content-type', 'application/json')
     xhr.setRequestHeader('Accept','*/*')
@@ -65,19 +66,45 @@ world = {};
 
 //XXX: TODO Make this prettier!
 function drawCircle(context,entity) {
-    with(context) {
-        beginPath();              
-        lineWidth = 3;
-        var x = entity["x"];
-        var y = entity["y"];
-        //moveTo(x,y);
-        fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false); 
-        if(entity["radius"]!=null && entity["radius"] == 3)
+    if(entity["radius"]!=null && entity["radius"] == 3){
+        with(context) {
+            beginPath();              
+            lineWidth = 3;
+            var x = entity["x"];
+            var y = entity["y"];
+            //moveTo(x,y);
+            fillStyle = entity["colour"];
+            strokeStyle = fillStyle;
+            arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false); 
             fill();
-        else
-            stroke();                                
+                               
+        }
+    }
+    else{
+        // Reference:
+        // MDN, Drawing shapes with canvas
+        // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_shapes
+        with(context){
+            var canvas = document.getElementById('canvas');
+            if (canvas.getContext) {
+                var ctx = canvas.getContext('2d');
+                beginPath();
+                lineWidth = 3;
+                var x = entity["x"];
+                var y = entity["y"];
+                y -= 20;
+                fillStyle = entity["colour"];
+                strokeStyle = fillStyle;
+                arc(x, y, 50, 0, Math.PI * 2, true); // Outer circle
+                moveTo(x+35, y);
+                arc(x, y, 35, 0, Math.PI, false);  // Mouth (clockwise)
+                moveTo(x-10, y-10);
+                arc(x-15, y-10, 5, 0, Math.PI * 2, true);  // Left eye
+                moveTo(x+20, y-10);
+                arc(x+15, y-10, 5, 0, Math.PI * 2, true);  // Right eye
+                stroke();
+            }
+        }
     }
 }
 
@@ -266,6 +293,9 @@ function random_color() {
     var color = color_list[Math.floor(Math.random() * 8)];
     return color;
 }
+// Reference:
+// Random color generator by Anatoliy, 
+// https://stackoverflow.com/questions/1484506/random-color-generator
 function getRandomColor() {
   var letters = '0123456789ABCDEF';
   var color = '#';
@@ -283,7 +313,7 @@ mouse.mousedowners.push(function(x,y,clicked,e) {
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'#feee50',
+    addEntityWithoutName({'x':x,'y':y,'colour':'#FFC0CB',
                             'radius':30});
 });
 
